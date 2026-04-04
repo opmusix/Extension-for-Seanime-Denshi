@@ -68,8 +68,8 @@ class Provider {
       const reply = await fetch(url).then(r => r.json());
       const html  = reply.html;
     
-      // Match <a href="/watch/..."> links similar to aniwatch structure
-      const regex = /<a href="\/watch\/([^"]+)"[^>]*title="([^"]+)"[^>]*data-id="(\d+)"[\s\S]*?<h3 class="film-name"[^>]*data-jname="([^"]+)"[\s\S]*?<div class="film-infor">\s*<span>([^<]+)<\/span>\s*<i[^>]*><\/i>\s*([^<]+)\s*<i[^>]*><\/i>/g;
+      // Match <a href="..."> links (aniwatch uses direct paths, not /watch/)
+      const regex = /<a href="([^"]+)"[^>]*class="nav-item"[\s\S]*?<div class="film-poster"[\s\S]*?<h3 class="film-name"[^>]*data-jname="([^"]+)"[^>]*>([^<]+)<\/h3>[\s\S]*?<div class="film-infor">\s*<span>([^<]+)<\/span>\s*<i[^>]*><\/i>\s*([^<]+)/g;
 
       const monthMap: Record<string, number> = {
         Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6,
@@ -78,14 +78,17 @@ class Provider {
     
       const matches = [...html.matchAll(regex)]
         .map(m => {
-          const pageUrl = m[1]; // e.g., sword-art-online-11235
+          const pageUrl = m[1]; // e.g., /konosuba-gods-blessing-on-this-wonderful-world-3-ova-19611
           if (pageUrl.startsWith("search?")) return null; // exclude "View all results"
     
-          const title = m[2]?.trim();
-          const id = m[3]; // numeric ID
-          const jname = m[4]?.trim();
-          const dateStr = m[5].trim(); // e.g. "Jul 4, 2025"
-          const format = m[6].trim().toUpperCase();
+          // Extract ID from URL (last number segment)
+          const idMatch = pageUrl.match(/-(\d+)(?:\?|$)/);
+          const id = idMatch ? idMatch[1] : pageUrl;
+          
+          const jname = m[2]?.trim();
+          const title = m[3]?.trim();
+          const dateStr = m[4].trim(); // e.g. "Apr 25, 2025"
+          const format = m[5].trim().toUpperCase();
 
           let startDate = { year: 0, month: 0, day: 0 };
           const dateMatch = dateStr.match(/([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/);
@@ -180,26 +183,23 @@ class Provider {
     let results = filtered.map(m => ({
       id: `${m.id}/${query.dub ? "dub" : "sub"}`,
       title: m.title,
-      url: `${this.baseUrl}/watch/${m.pageUrl}`,
+      url: `${this.baseUrl}${m.pageUrl}`,
       subOrDub: query.dub ? "dub" : "sub",
     }));
 
     if (!query.media.startDate || !query.media.startDate.year) {
       const fetchMatches = async (url: string) => {
         const html = await fetch(url).then(res => res.text());
-        // Match the main link
-        const regex = /<a href="\/watch\/([^"]+)"[^>]+title="([^"]+)"[^>]+data-id="(\d+)"/g;
+        // Match the main link - aniwatch uses direct paths
+        const regex = /<a href="([^"]+)"[^>]*class="nav-item"[\s\S]*?<h3 class="film-name"[^>]*data-jname="([^"]+)"[^>]*>([^<]+)<\/h3>/g;
         return [...html.matchAll(regex)].map(m => {
           const pageUrl = m[1];
-          const title = m[2];
-          const id = m[3];
-          // Find corresponding data-jname
-          const jnameRegex = new RegExp(
-            `<h3 class="film-name">[\\s\\S]*?<a[^>]+href="\\\/watch\\\/${pageUrl}[^"]*"[^>]+data-jname="([^"]+)"`,
-            "i"
-          );
-          const jnameMatch = html.match(jnameRegex);
-          const jname = jnameMatch ? jnameMatch[1] : null;
+          const jname = m[2];
+          const title = m[3];
+          
+          // Extract ID from URL
+          const idMatch = pageUrl.match(/-(\d+)(?:\?|$)/);
+          const id = idMatch ? idMatch[1] : pageUrl;
           return {
             id,
             pageUrl,
@@ -239,7 +239,7 @@ class Provider {
       results = filtered.map(m => ({
         id: `${m.id}/${query.dub ? "dub" : "sub"}`,
         title: m.title,
-        url: `${this.baseUrl}/watch/${m.pageUrl}`,
+        url: `${this.baseUrl}${m.pageUrl}`,
         subOrDub: query.dub ? "dub" : "sub",
       }));
     }
@@ -256,7 +256,7 @@ class Provider {
     const html = json.html;
 
     const episodes = [];
-    const regex = /<a[^>]*class="[^"]*\bep-item\b[^"]*"[^>]*data-number="(\d+)"[^>]*data-id="(\d+)"[^>]*href="([^"]+ )"[\s\S]*?<div class="ep-name[^"]*"[^>]*title="([^"]+)"/g;
+    const regex = /<a[^>]*class="[^"]*\bep-item\b[^"]*"[^>]*data-number="(\d+)"[^>]*data-id="(\d+)"[^>]*href="([^"]+)"[\s\S]*?<div class="ep-name[^"]*"[^>]*title="([^"]+)"/g;
 
     let match;
     while ((match = regex.exec(html)) !== null) {
@@ -286,7 +286,7 @@ class Provider {
     const serverHtml = serverJson.html;
 
     // Regex to match the right block (sub or dub) and find the server by name - escape special chars in serverName
-    const escapedServerName = serverName.replace(/[.*+?^${}()|[\]\\\\]/g, "\\\\$&");
+    const escapedServerName = serverName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(
         `<div[^>]*class="item server-item"[^>]*data-type="(${typePattern})"[^>]*data-id="(\\d+)"[^>]*>\\s*<a[^>]*>\\s*${escapedServerName}\\s*</a>`,
         "i"
