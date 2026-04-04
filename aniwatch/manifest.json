@@ -4,7 +4,7 @@
   "icon": "https://raw.githubusercontent.com/opmusix/Extension-for-Seanime-Denshi/main/aniwatch/logo.png",
   "description": "AniWatch is an online stream provider for both sub and dub with soft subs. Replica of HiAnime.",
   "manifestURI": "https://raw.githubusercontent.com/opmusix/Extension-for-Seanime-Denshi/main/aniwatch/manifest.json",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "opmusix",
   "type": "onlinestream-provider",
   "language": "typescript",
