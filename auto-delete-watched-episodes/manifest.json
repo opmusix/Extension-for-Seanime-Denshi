@@ -1,0 +1,24 @@
+{
+  "id": "auto-delete-watched-episodes",
+  "name": "Auto Delete Watched Episodes",
+  "version": "1.0.0",
+  "language": "typescript",
+  "type": "plugin",
+  "description": "Automatically delete local episode files when you finish watching them",
+  "author": "opmusix",
+  "icon": "",
+  "website": "https://github.com/opmusix/Extension-for-Seanime-Denshi",
+  "lang": "multi",
+  "manifestURI": "https://raw.githubusercontent.com/opmusix/Extension-for-Seanime-Denshi/refs/heads/main/auto-delete-watched-episodes/manifest.json",
+  "payloadURI": "https://raw.githubusercontent.com/opmusix/Extension-for-Seanime-Denshi/refs/heads/main/auto-delete-watched-episodes/code.ts",
+  "plugin": {
+    "version": "1",
+    "permissions": {
+      "scopes": ["anilist", "system", "storage"],
+      "allow": {
+        "readPaths": ["$DOWNLOAD/**/*", "$SEANIME_ANIME_LIBRARY/**/*"],
+        "writePaths": ["$DOWNLOAD/**/*", "$SEANIME_ANIME_LIBRARY/**/*"]
+      }
+    }
+  }
+}
