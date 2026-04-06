@@ -6,7 +6,7 @@
   "type": "plugin",
   "description": "Automatically delete local episode files when you finish watching them",
   "author": "opmusix",
-  "icon": "",
+  "icon": "https://github.com/opmusix/Extension-for-Seanime-Denshi/blob/main/auto-delete-watched-episodes/icon.png",
   "website": "https://github.com/opmusix/Extension-for-Seanime-Denshi",
   "lang": "multi",
   "manifestURI": "https://raw.githubusercontent.com/opmusix/Extension-for-Seanime-Denshi/refs/heads/main/auto-delete-watched-episodes/manifest.json",
